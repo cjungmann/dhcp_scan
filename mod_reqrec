@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+source mod_array_table
+
+declare -A Requests
+
+declare -a ReqRec
+
+declare -n rr_id=ReqRec[0]           ###< MAC or DHCP-
+declare -n rr_message=ReqRec[1]
+declare -n rr_ip_reqested=ReqRec[2]
+declare -n rr_request_host=ReqRec[3]
+declare -n rr_response=ReqRec[4]
+declare -n rr_ip_offered=ReqRec[5]
+declare -n rr_error_msg=ReqRec[6]
+
+declare -i ReqRec_Len=7
+
+
+##
+# Set of domain-dependent calls to functions in modules mod_array_table:
+#
+reqrec_clear() { array_row_clear "ReqRec" "$ReqRec_Len"; }
+
+reqrec_set()   { array_row_set   "ReqRec" "$ReqRec_Len" "$@"; }
+reqrec_dump()  { array_row_dump  "ReqRec"; };
+
+reqrec_row_put() { table_array_row_put "Requests" "ReqRec"; }
+reqrec_row_get() { table_array_row_get "ReqRec" "Requests" "$1"; }
+
+
+##
+# Domain=specific functions for storing and updating DHCP requests
+#
+
+##
+# @brief Create a new request record
+#
+# @param [in] $1  ID value, usually a MAC address
+# @param [in] $2  DHCP message (DHCPDISCOVER or DHCPREQUEST)
+# @param [in] $3  Optional IP address, filled for DHCPREQUEST
+# @param [in] $4  Optional host name
+##
+reqrec_request_add()
+{
+    reqrec_set "$@";
+    reqrec_row_put;
+}
+
+reqrec_request_response()
+{
+    local rrr_id="$1"
+    local rrr_message="$2"
+    local rrr_addr="$3"
+
+    if reqrec_row_get "$rrr_id"; then
+        # DHCPINFORM is a unique request with an unusual
+        # response.  It's easier to just pull it out of the
+        # normal processing and handle with code.
+        if [ "$rr_message" == DHCPINFORM ]; then
+            rr_ip_offered="$d_extra_id"
+        else
+            rr_ip_offered="$rrr_addr"
+        fi
+
+        rr_response="$rrr_message"
+        reqrec_row_put
+    else
+        echo "There is no open request for '$rrr_id' ($RDL_LINENO)"
+    fi
+}
+
+reqrec_report()
+{
+    local rr_key
+    for rr_key in "${!Requests[@]}"; do
+        if reqrec_row_get "$rr_key"; then
+            reqrec_dump
+            echo
+        else
+            echo "Key '$rr_key' missing"
+        fi
+    done
+}
+

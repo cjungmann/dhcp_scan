@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+source mod_array_table
+source mod_reqrec
+
+#### Testing: ####
+
+
+declare test_id1="98:fa:9b:ee:bc:60"
+declare test_req1="DHCPDISCOVER"
+declare test_resp1="DHCPOFFER"
+declare test_ip1="192.168.0.66"
+
+declare test_id2="04:ed:33:f1:6d:ff"
+declare test_req2="DHCPREQUEST"
+declare test_ipreq2="192.168.0.67"
+declare test_resp2="DHCPACK"
+declare test_resp_ip="$test_ipreq2"
+
+
+
+# echo "Test raw set and dump of an array:"
+# array_row_set "ReqRec" "$ReqRec_Len" "$test_id1" "$test_req1"
+# array_row_dump "ReqRec"
+
+# echo
+# echo "Test raw set and dump of another array:"
+# declare tearr2=( "$test_id2" "$test_req2" )
+# array_row_set "ReqRec" "$ReqRec_Len" "${tearr2[@]}"
+# array_row_dump "ReqRec"
+
+echo
+echo "Test adding record to table by key:"
+
+reqrec_request_add "$test_id1" "$test_req1"
+reqrec_request_add "$test_id2" "$test_req2"
+
+echo -n $'\e[34;1m'
+reqrec_report
+echo -n $'\e[m'
+
+echo
+echo "Test updating records matching key with new values:"
+
+reqrec_request_response "$test_id1" "$test_resp1" "$test_ip1"
+reqrec_request_response "$test_id2" "$test_resp2" "$test_resp_ip"
+
+
+echo
+echo "Test report of table of dhcp requests and responses."
+reqrec_report
+
+
+
+# echo "Test registering $test_id1"
+# if ! reqrec_register "$test_id1" "$test_req1"; then
+#     echo "error saving $test_id1"
+#     exit 1
+# fi
+
+# echo "Test registering $test_id2"
+# if ! reqrec_register "$test_id2" "$test_req2"; then
+#     echo "error saving $test_id2"
+#     exit 1
+# fi
+
+# echo "Test restoring and dumping $test_id1"
+# if reqrec_retrieve "$test_id1"; then
+#     reqrec_dump
+# fi
+
+

@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+source mod_array_table
+source mod_reqrec
+source mod_parse_dhcp
+
+declare logfile
+logfile="dhcpd.log"
+# logfile="dhcpd_short.log"
+
+bash_rematch_dump()
+{
+    local -n ad_array="$1"
+    local el
+    local -i ndx=0
+    for el in "${ad_array[@]}"; do
+        if [ "$ndx" -gt 0 ]; then
+            printf $'%2d \e[44m%s\e[m\n' "$ndx" "$el"
+        fi
+        (( ++ndx ))
+    done
+    echo
+}
+
+regex_debug_line_parser()
+{
+    local pdl_line="$1"
+    if [[ "$pdl_line" =~ $PDL_PRegex ]]; then
+        printf $'line %4d: \e[33;1m%s\e[m\n' "$RDL_LINENO" "$pdl_line"
+        bash_rematch_dump "BASH_REMATCH"
+        echo
+    fi
+}
+
+parse_debug_regex()
+{
+    read_dhcp_lines "$logfile" "regex_debug_line_parser"
+
+    cat <<EOF
+Use this output to compare the aliases for subscripted BASH_REMATCH
+elements in script file mod_parse_dhcp.  Make sure the subscripts of the
+alias names match the numbered elements of the sample parsed log file
+DHCP message lines
+EOF
+    echo
+}
+
+# These two functions were used to debug a DHCPINFORM -> DHCPACK
+# negotiation, which is unique and relatively rare.  Hopefully
+# these two functions won't be needed, but there left here as a
+# debugging example if necessary in the future
+keys_debug_line_parser()
+{
+    parse_dhcp_line "$1"
+
+    if [ "$RDL_LINENO" -eq 37 ] || [ "$RDL_LINENO" -eq 38 ]; then
+        reqrec_report
+        echo
+    fi
+}
+
+# Second of two DHCPINFORM -> DHCPACK debugging functions
+parse_debug_keys()
+{
+    read_dhcp_lines "$logfile" "keys_debug_line_parser"
+
+    cat <<EOF
+
+See the progression of the contents of connection-tracking associative
+array.  In function keys_debug_line_parser, the scope of the lines to be
+displayed is limited a conditional testing the value of the variable
+RDL_LINENO.
+EOF
+    echo
+}
+
+
+
+parse_log_file()
+{
+    read_dhcp_lines "$logfile"
+    reqrec_report
+}
+
+parse_journalctl()
+{
+    read_dhcp_lines
+}
+
+# parse_debug_regex
+# parse_debug_keys
+parse_log_file
+# parse_journalctl

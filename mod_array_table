@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+
+declare table_array_row_delim='|'
+
+##
+# @brief Set array elements to empty values
+#
+# @param [in,out] $1  name of array to clear
+# @param [in]     $2  integer number of array elements
+##
+array_row_clear()
+{
+    local -n arc_object="$1"
+    local -i els="$2"
+    arc_object=()
+
+    for (( ndx=0; ndx<els; ++ndx )); do
+         arc_object+=( "" )
+    done
+}
+
+##
+# @brief Set array elements to passed values or empty if not provided.
+#
+# @param [in,out] $1  name of array to set
+# @param [in]     $2  integer number of array elements
+# @param [in]     ... remainder of arguments copied to array
+##
+array_row_set()
+{
+    local -n ars_object="$1"
+    local -i els="$2"
+
+    if [ "$els" -eq 0 ]; then
+        echo "Failed to set element count."
+        exit 1
+    fi
+
+    ars_object=()
+
+    # Make new array because $0 and ${@:0:1} is always the script name:
+    local -a ars_array=( "${@:3}" )
+    local val
+    for (( ndx=0; ndx<els; ++ndx )); do
+        val="${ars_array[@]:$ndx:1}"
+        ars_object+=( "$val" )
+    done
+}
+
+##
+# @brief Simple indexed dump of array's contents
+#
+# @param [in] $1  name of array to dump
+##
+array_row_dump()
+{
+    local -n ard_object="$1"
+
+    local el
+    local -i ndx=0
+    for el in "${ard_object[@]}"; do
+        printf "%2d: '%s'\n" $(( ndx++ )) "$el"
+    done
+}
+
+##
+# @brief Add row to associative array table
+#
+# The row ($2) is assumed to be set with the appropriate number
+# of elements, and that the first element of the row is the key
+# value.
+#
+# @param [in,out] $1  name of associative array in which to put a row
+# @param [in]     $2  name of array to put
+##
+table_array_row_put()
+{
+    local -n tarp_table="$1"
+    local -n tarp_row="$2"
+
+    local key="${tarp_row[0]}"
+
+    local OIFS="$IFS"
+    local IFS="$table_array_row_delim"
+    tarp_table+=( "$key" "${tarp_row[*]}" )
+    IFS="$OIFS"
+}
+
+# Untypeable character to substitute for missing parameter
+# in table_array_row_exists()
+TARE_MISSING=$'\000'
+
+##
+# @brief Detect record existence without retrieving the record
+#
+# @param [in]  name of table
+# @param [in]  key value for which to test
+#
+# @return 0 (true) if keyed record exists,
+#         non-zero (false) if key doesn't exist
+##
+table_array_row_exists()
+{
+    local -n tare_table="$1"
+    local tare_key="$2"
+
+    # Omit ':' for test to just check for existence (bash(1):'Omitting the color')
+    local s="${tare_table[$tare_key]-$TARE_MISSING}"
+    [ "$s" != "$TARE_MISSING" ]
+}
+
+##
+# @brief For a given key, return the matching row
+#
+# @param [in,out] $1  Name of array in which row will be returned
+# @param [in]     $2  Name of associative array from which the row will be gotten
+# @param [in]     $3  Key value used to search
+##
+table_array_row_get()
+{
+    local -n targ_row="$1"
+    local -n targ_table="$2"
+    local targ_key="$3"
+
+    targ_row=()
+
+    local targ_str="${targ_table[$targ_key]}"
+    if [ "$targ_str" ]; then
+        local OIFS="$IFS"
+        local IFS="$table_array_row_delim"
+        targ_row=( $targ_str )
+        IFS="$OIFS"
+        return 0
+    fi
+
+    return 1
+}
+

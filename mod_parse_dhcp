@@ -1,0 +1,168 @@
+# -*- mode:sh -*-
+
+is_root() { [ "$USER" == "root" ];  }
+
+# Both of the following are to be included in the regex_arr, and
+# each contribute a match-group.  For the two groups that use these
+# to sub-expressions, remember to count one extra group for each.
+declare regex_ip=[[:digit:]]\{1,3\}\(\.[[:digit:]]\{1,3\}\)\{3\}
+declare regex_mac=[[:xdigit:]]\{2\}\(:[[:xdigit:]]\{2\}\)\{5,\}
+
+declare regex_message=^.*dhcpd\\\[[[:digit:]]+\\\]:[[:space:]]\(.*\)
+
+declare -a regex_arr=(
+    ^.*
+    \([[:digit:]]{2}\(:[[:digit:]]{2}\){2}\)   # group 1(2): time-of-day
+    .*dhcpd\[[[:digit:]]+\]:\                  # deliberately-escaped space at end
+    \(DHCP[^[:space:]]+\)                      # group 3:    DHCP message
+    [[:space:]]
+    \([^[:space:]]+\)                          # group 4:    direction (for, on, or from)
+    [[:space:]]
+    \($regex_ip\|$regex_mac\)                  # group 5(6,7): first address
+    \(                                         # group 8, optional, outer capture ignored
+       [[:space:]]
+       \\\(                                    # ignore opening parenthesis
+          \(                                   # group 9, capture address (DHCPREQUEST or DHCPACK after DHCPINFORM)
+          $regex_ip\|$regex_mac                # internal groups 10 and 11
+          \)                                   # end of group 9
+       \\\)                                    # ignore closing parenthesis
+    \)?                                        # end of group 8
+    \(                                         # group 12
+       [[:space:]]                             # ignore to conjunction
+       \(to\|from\)                            # group 13: conjunction
+       [[:space:]]
+       \($regex_ip\|$regex_mac\)               # group 14(15,16): second address
+    \)?                                        # end of group 12
+    \(                                         # Group 17, optional, outer capture ignored
+       [[:space:]]
+       \(                                      # Group 18, capture ignored, but may contain host name
+          \\\(                                 # ignore opening parenthesis
+            \(                                 # Group 19, host name capture
+               [^\\\)]+                        # wildcard host name/mac address/etc
+            \)                                 # end of group 19, host name capture
+          \\\)                                 # ignore host name closing parenthesis
+       \)?                                     # end of group 18
+       [[:space:]]*via[[:space:]]
+       \([^[:space:]]+\)                       # group 20: NIC name
+    \)?                                        # end of group 17
+)
+
+declare OIFS="$IFS"
+declare IFS=''
+declare PDL_PRegex="${regex_arr[*]}"
+IFS="$OIFS"
+unset OIFS
+
+# Aliases for useful group matches:
+declare -n     d_time="BASH_REMATCH[1]"
+declare -n  d_message="BASH_REMATCH[3]"
+declare -n      d_dir="BASH_REMATCH[4]"
+declare -n    d_addr1="BASH_REMATCH[5]"
+declare -n d_extra_id="BASH_REMATCH[9]"
+declare -n     d_conj="BASH_REMATCH[13]"
+declare -n    d_addr2="BASH_REMATCH[14]"
+declare -n     d_host="BASH_REMATCH[19]"
+declare -n      d_nic="BASH_REMATCH[20]"
+
+dhcp_request_message()
+{
+    case "$1" in
+        DHCPDISCOVER|DHCPREQUEST|DHCPDECLINE|DHCPINFORM|DHCPRELEASE) return 0;;
+    esac;
+    return 1;
+}
+
+dhcp_response_message()
+{
+    case "$1" in
+        DHCPOFFER|DHCPACK|DHCPNAK) return 0;;
+    esac;
+    return 1;
+}
+
+addresses_from_dhcp_message()
+{
+    local -n afrm_id="$1"
+    local -n afrm_ip="$2"
+
+    case "$d_message" in
+        DHCPDISCOVER|DHCPINFORM)
+            afrm_id="$d_addr1"
+            afrm_ip="$d_addr2"
+            return 0;;
+        DHCPREQUEST|DHCPDECLINE|DHCPRELEASE|DHCPOFFER|DHCPACK|DHCPNAK)
+            afrm_ip="$d_addr1"
+            afrm_id="$d_addr2"
+
+            if [ "$d_message" = DHCPACK ] && [ -z "$afrm_id" ]; then
+                afrm_id="$afrm_ip"
+            fi
+            return 0;;
+    esac
+
+
+    return 1
+}
+
+parse_dhcp_line()
+{
+   local pdl_line="$1"
+
+   local pdl_ip
+   local pdl_id
+
+   # skip commented lines (strict comment rule required '#' in first column):
+   if [ "${pdl_line:0:1}" == '#' ]; then
+       return
+   fi
+
+   if [[ "$pdl_line" =~ $PDL_PRegex ]]; then
+       if [ "$d_message" == DHCPDECLINE ]; then
+           # ignoring DHCPDECLINE, gets no server response, though it
+           # might be followed by a DCHPDISCOVER for a new lease
+           :
+       else
+           if addresses_from_dhcp_message "pdl_id" "pdl_ip"; then
+               if dhcp_response_message "$d_message"; then
+                   reqrec_request_response "$pdl_id" "$d_message" "$pdl_ip"
+               else
+                   reqrec_request_add "$pdl_id" "$d_message" "$pdl_ip" "$d_host"
+               fi
+           else
+               echo "Unrecognized message, '$d_message'"
+           fi
+       fi
+   fi
+}
+
+read_dhcp_lines()
+{
+    local rdl_source="$1"
+    local rdl_line_parser="${2:-parse_dhcp_line}"
+
+    local rdl_line
+
+    local -i RDL_LINENO=0
+
+    if [ -f "$rdl_source" ]; then
+        while read -r "rdl_line"; do
+            (( ++RDL_LINENO ))
+            "${rdl_line_parser}" "$rdl_line"
+        done < "$rdl_source"
+        return 0
+    else
+        if is_root; then
+            while read -r "rdl_line"; do
+                (( ++RDL_LINENO ))
+                "${rdl_line_parser}" "$rdl_line"
+            done < <( journalctl -u isc-dhcp-server )
+            return 0
+        else
+            echo "You must be root toget journalctl data"
+        fi
+    fi
+
+    return 1
+}
+
+

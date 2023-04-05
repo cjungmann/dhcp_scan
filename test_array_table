@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+source mod_array_table
+
+declare -A PTable
+
+declare -a Row
+declare -i RowLen=6
+
+
+declare -i rownum=0
+
+array_row_set "Row" "$RowLen" $(( ++rownum )) "Tom" "Swift" "1/1/1890" "Shopton" "New York"
+table_array_row_put "PTable" "Row"
+array_row_set "Row" "$RowLen" $(( ++rownum )) "Ned" "Newton" "9/15/1889" "Shopton" "New York"
+table_array_row_put "PTable" "Row"
+array_row_set "Row" "$RowLen" $(( ++rownum )) "Mary" "Nestor" "4/21/1892" "Shopton" "New York"
+table_array_row_put "PTable" "Row"
+
+echo "Dumping rows in reverse order:"
+table_array_row_get "Row" "PTable" 3
+array_row_dump "Row"
+table_array_row_get "Row" "PTable" 2
+array_row_dump "Row"
+table_array_row_get "Row" "PTable" 1
+array_row_dump "Row"
+
+test_existence()
+{
+    local -i key="$1"
+    if table_array_row_exists "PTable" "$key"; then
+        echo "Record key '$key' exists."
+    else
+        echo "Record key '$key' DOES NOT exist."
+    fi
+}
+
+echo
+echo "Testing for row existence:"
+test_existence 2
+test_existence 3
+test_existence 4
+
+
+
+
