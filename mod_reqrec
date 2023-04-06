@@ -66,7 +66,7 @@ reqrec_request_response()
         rr_response="$rrr_message"
         reqrec_row_put
     else
-        echo "There is no open request for '$rrr_id' ($RDL_LINENO)"
+        echo "There is no open request for '$rrr_id'"
     fi
 }
 
