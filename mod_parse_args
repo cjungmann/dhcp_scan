@@ -1,0 +1,123 @@
+# -*- mode:sh -*-
+
+# Variables informing how application will run
+declare GArg_Input=""
+declare GArg_Output="ip"
+declare -i GArg_Show_Progress=0
+declare -i GArg_Show_Args=0
+
+#################################
+# Management of multi-argument options like `-i filename`
+declare -a GArg_States
+
+declare -n GAwait_input=GArg_States[0]
+declare -n GAwait_output=GArg_States[1]
+declare -n GAwait_show_progress=GArg_States[2]
+
+clear_GStates() { GArg_States=( 0 0 0 ); }
+
+
+#################################
+# Management of allowed option values
+declare GArgDelim='|'
+
+declare -a GArg_Output_Options=(
+    ip        # sort by IP address
+    mac       # sort by MAC address
+    raw       # raw output
+)
+
+GArg_Output_valid()
+{
+   local OIFS="$IFS"
+   local IFS='|'
+   local gov_regex="${GArg_Output_Options[*]}"
+   IFS="$OIFS"
+   [[ "$1" =~ $gov_regex ]]
+}
+
+GArg_show_value()
+{
+    local gsv_stem="$1"
+    local -n gsv_stem_var="GArg_${gsv_stem}"
+    printf $'\e[32;1m%s\e[m is \e[42m%s\e[m\n' "$gsv_stem" "$gsv_stem_var"
+}
+
+GArg_show_args()
+{
+    local gsa_stem
+    local -a gsa_stems=( "Input" "Output" "Show_Progress" )
+    for gsa_stem in "${gsa_stems[@]}" ; do
+        GArg_show_value "$gsa_stem"
+    done
+}
+
+show_usage()
+{
+    cat <<EOF
+Usage:
+   $0 [options]
+
+Options:
+   -a              show options and exit
+   -h              show this help display
+   -p              show reassuring progress processing logfile
+   -i input_file   name of log file, default is stdin
+   -o output_type  allowed values are:
+                   ip    for leases sorted by IP address
+                   mac   for leases sorted by MAC or ID value
+                   raw   for raw output of final DHCP address agreements
+EOF
+    }
+
+parse_args()
+{
+    local arg
+
+    for arg in "$@"; do
+        if [ "${arg:0:1}" == '-' ]; then
+            clear_GStates
+            case "${arg:1:1}" in
+                a) GArg_Show_Args=1;;
+                i) GAwait_input=1;;
+                o) GAwait_output=1;;
+                p) GArg_Show_Progress=1;;
+                h) show_usage;
+                   if [ "$GArg_Show_Args" -eq 0 ]; then
+                      exit 1
+                   fi
+                   ;;
+            esac
+        else
+            if [ "$GAwait_input" -eq 1 ]; then
+                if [ -f "$arg" ]; then
+                    GArg_Input="$arg"
+                else
+                    printf $'\e[32;1m%s\e[m is not a file.\n' "$arg"
+                    if [ "$GArg_Show_Args" -eq 0 ]; then
+                        exit 1
+                    fi
+                fi
+            elif [ "$GAwait_output" -eq 1 ]; then
+                if GArg_Output_valid "$arg"; then
+                    GArg_Output="$arg"
+                else
+                    printf $'\e[32;1m%s\e[m is not a valid output value.\n' "$arg"
+                    if [ "$GArg_Show_Args" -eq 0 ]; then
+                        exit 1
+                    fi
+                fi
+            fi
+        fi
+    done
+
+    if [ "$GArg_Show_Args" -ne 0 ]; then
+        echo
+        GArg_show_args
+        exit 1
+    fi
+
+    return 0
+}
+
+

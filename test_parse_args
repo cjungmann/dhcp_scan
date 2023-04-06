@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+source mod_parse_args
+
+test_set_of_args()
+{
+    printf $'\e[2J\e[1;1H'
+    local -a tsoa_args=( "$@" )
+    printf $'\nAbout to test \e[1m%s %s\e[m\n' "$0" "${tsoa_args[*]}"
+    echo
+    parse_args -a "${tsoa_args[@]}"
+
+    echo
+    read -n1 -p "Press a key to continue."
+}
+
+test_set_of_args -h
+test_set_of_args -i dhcpd_short.log
+test_set_of_args -i bogus_missing_file.log
+test_set_of_args -o raw
+test_set_of_args -o raw -p
+

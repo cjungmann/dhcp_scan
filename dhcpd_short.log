@@ -1,0 +1,54 @@
+# -*- mode:sh -*-
+# 5 DHCP Client Requests:
+# DHCPDISCOVER   server responds
+# DHCPREQUEST    server responds
+# DHCPINFORM     server responds with DHCPACK, both messages identified with IP address
+# DHCPDECLINE    no server response: we will ignore
+# DHCPRELEASE    no server response: we will ignore
+#
+# DHCPDISCOVER SCENARIOS (3)
+#
+
+# #1 client sends DHCPDISCOVER, client receives DHCPOFFER
+Mar 29 16:22:00 NanoPi-R5S dhcpd[737]: DHCPDISCOVER from aa:bb:cc:dd:ee:ff via eth1
+Mar 29 16:22:00 NanoPi-R5S dhcpd[737]: DHCPOFFER on 192.168.0.102 to aa:bb:cc:dd:ee:ff via eth1
+#
+# #2 client sends DHCPDISCOVER, server issues DHCPREQUEST, client receives DHCPACK
+Mar 29 16:21:59 NanoPi-R5S dhcpd[737]: DHCPDISCOVER from ff:ee:dd:cc:bb:aa via eth1
+Mar 29 16:21:59 NanoPi-R5S dhcpd[737]: DHCPREQUEST for 192.168.0.66 (192.168.0.32) from ff:ee:dd:cc:bb:aa via eth1
+Mar 29 16:21:59 NanoPi-R5S dhcpd[737]: DHCPACK on 192.168.0.66 to ff:ee:dd:cc:bb:aa (EPSON947BFE) via eth1
+#
+# #3 client sends DHCPDISCOVER server issues DHCPOFFER client sends DHCPREQUEST server responds DHCPACK
+Mar 29 19:03:50 NanoPi-R5S dhcpd[1727]: DHCPDISCOVER from 11:22:33:44:55:66 via eth1
+Mar 29 19:03:50 NanoPi-R5S dhcpd[1727]: icmp_echorequest 192.168.0.134: Operation not permitted
+Mar 29 19:03:51 NanoPi-R5S dhcpd[1727]: DHCPOFFER on 192.168.0.134 to 11:22:33:44:55:66 (Pixel-5) via eth1
+Mar 29 19:03:51 NanoPi-R5S dhcpd[1727]: DHCPREQUEST for 192.168.0.134 (192.168.0.32) from 11:22:33:44:55:66 (Pixel-5) via eth1
+Mar 29 19:03:51 NanoPi-R5S dhcpd[1727]: DHCPACK on 192.168.0.134 to 11:22:33:44:55:66 (Pixel-5) via eth1
+#
+# DHCPREQUEST SCENARIOS (2)
+#
+# #1 Client sends DHCPREQUEST, server PERMITS with DHCPACK
+Mar 29 16:21:59 NanoPi-R5S dhcpd[737]: DHCPREQUEST for 192.168.0.66 (192.168.0.32) from ff:ee:dd:cc:bb:aa via eth1
+Mar 29 16:21:59 NanoPi-R5S dhcpd[737]: DHCPACK on 192.168.0.66 to ff:ee:dd:cc:bb:aa (EPSON947BFE) via eth1
+# #2 client sends DHCPREQUEST, server DENIES with DHCPNAK
+Mar 31 14:14:44 NanoPi-R5S dhcpd[7956]: DHCPREQUEST for 192.168.0.69 from 66:55:44:33:22:11 via eth1: lease 192.168.0.69 unavailable.
+Mar 31 14:14:44 NanoPi-R5S dhcpd[7956]: DHCPNAK on 192.168.0.69 to 66:55:44:33:22:11 via eth1
+#
+# DHCPINFORM
+Mar 30 17:26:02 NanoPi-R5S dhcpd[3503]: DHCPINFORM from 192.168.0.100 via eth1
+Mar 30 17:26:02 NanoPi-R5S dhcpd[3503]: DHCPACK to 192.168.0.100 (12:34:56:78:90:ab) via eth1
+#
+# Test some ignorable negotiations (DHCPDECLINE, DHCPRELEASE)
+#
+# DHCPDECLINEd, then negotiate for new address
+Mar 29 19:03:54 NanoPi-R5S dhcpd[1727]: DHCPDECLINE of 192.168.0.134 from ab:cd:ef:fe:dc:ba (Pixel-5) via eth1: abandoned
+Mar 29 19:04:04 NanoPi-R5S dhcpd[1727]: DHCPDISCOVER from ab:cd:ef:fe:dc:ba via eth1
+Mar 29 19:04:04 NanoPi-R5S dhcpd[1727]: icmp_echorequest 192.168.0.135: Operation not permitted
+Mar 29 19:04:05 NanoPi-R5S dhcpd[1727]: DHCPOFFER on 192.168.0.135 to ab:cd:ef:fe:dc:ba (Jessicas-MBP) via eth1
+Mar 29 19:04:06 NanoPi-R5S dhcpd[1727]: DHCPREQUEST for 192.168.0.135 (192.168.0.32) from ab:cd:ef:fe:dc:ba (Jessicas-MBP) via eth1
+Mar 29 19:04:06 NanoPi-R5S dhcpd[1727]: DHCPACK on 192.168.0.135 to ab:cd:ef:fe:dc:ba (Jessicas-MBP) via eth1
+#
+# DHCPRELEASE, no timely follow-up 
+Mar 30 14:52:16 NanoPi-R5S dhcpd[3503]: DHCPRELEASE of 192.168.44.212 from 1a:2b:3c:4d:5e:6f via eth1 (not found)
+#
+

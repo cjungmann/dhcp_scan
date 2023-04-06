@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+source mod_array_table
+source mod_reqrec
+source mod_parse_dhcp
+source mod_parse_args
+
+
+is_root() { [ "$USER" == "root" ];  }
+report_progress() { printf $'\e[2J\e[1;1H%s' "$d_message"; }
+
+# Run option variables:
+# GArg_Input         input file (stdin if blank)
+# GArg_Output        format of output
+# GArg_Show_Progress indicate progress (1 to show, 0 not to show)
+
+main()
+{
+    local mline
+    local reporter=""
+    if parse_args "$@"; then
+        if [ "$GArg_Show_Progress" -eq 1 ]; then
+            reporter="report_progress"
+        fi
+
+        if [ "$GArg_Input" ]; then
+            while read -r "mline"; do
+                parse_dhcp_line "$mline" "$reporter"
+            done < "$GArg_Input"
+        else
+            while read -r "mline"; do
+                parse_dhcp_line "$mline" "$reporter"
+            done
+        fi
+
+        case "$GArg_Output" in
+            raw) reqrec_report ;;
+            ip) reqrec_report_by_ip ;;
+            mac) reqrec_report_by_mac ;;
+        esac
+    fi
+}
+
+main "$@"
