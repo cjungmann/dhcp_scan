@@ -6,6 +6,8 @@ source mod_parse_dhcp
 
 is_root() { [ "$USER" == "root" ];  }
 
+report_progress() { printf $'\e[2J\e[1;1H%s' "$d_message"; }
+
 declare logfile
 logfile="dhcpd.log"
 # logfile="dhcpd_short.log"
@@ -82,8 +84,10 @@ parse_dhcp_log_file()
     echo
     local plf_line
     while read -r "plf_line"; do
-        parse_dhcp_line "$plf_line"
+        parse_dhcp_line "$plf_line" "report_progress"
     done < "$logfile"
+
+    echo $'\e[3J'
 
     reqrec_report
 }
@@ -98,11 +102,13 @@ parse_dhcp_journalctl()
     if is_root; then
         local pj_line
         while read -r "pj_line"; do
-            parse_dhcp_line "$pj_line"
+            parse_dhcp_line "$pj_line" "report_progress"
         done < <( journalctl -S yesterday -u isc-dhcp-server )
     else
         echo "You must be root to access journalctl records."
     fi
+
+    echo $'\e[3J'
 
     reqrec_report
 }
