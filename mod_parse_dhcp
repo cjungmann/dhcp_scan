@@ -62,8 +62,6 @@ declare -n    d_addr2="BASH_REMATCH[14]"
 declare -n     d_host="BASH_REMATCH[19]"
 declare -n      d_nic="BASH_REMATCH[20]"
 
-report_progress() { printf $'\e[3J\e[1;1H%s' "$d_message"; }
-
 dhcp_request_message()
 {
     case "$1" in
@@ -104,9 +102,12 @@ addresses_from_dhcp_message()
     return 1
 }
 
+dummy_progress() { :; }
+
 parse_dhcp_line()
 {
    local pdl_line="$1"
+   local pdl_progress="${2:-dummy_progress}"
 
    local pdl_ip
    local pdl_id
@@ -117,7 +118,7 @@ parse_dhcp_line()
    fi
 
    if [[ "$pdl_line" =~ $PDL_PRegex ]]; then
-       report_progress
+       $pdl_progress
        if [ "$d_message" == DHCPDECLINE ]; then
            # ignoring DHCPDECLINE, gets no server response, though it
            # might be followed by a DCHPDISCOVER for a new lease
