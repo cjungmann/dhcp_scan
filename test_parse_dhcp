@@ -4,10 +4,18 @@ source mod_array_table
 source mod_reqrec
 source mod_parse_dhcp
 
+is_root() { [ "$USER" == "root" ];  }
+
 declare logfile
 logfile="dhcpd.log"
 # logfile="dhcpd_short.log"
 
+# The next three functions work together to enable debugging
+# of the complicated regular expression at the heart of this
+# parsing program
+
+# Dump the contents of BASH_REMATCH array, omitting the 0th
+# element that is the entire match (too long and not necessary).
 bash_rematch_dump()
 {
     local -n ad_array="$1"
@@ -22,6 +30,9 @@ bash_rematch_dump()
     echo
 }
 
+# This function only applies the regular expression and shows the
+# results.  Use this function with 'parse_dhcp_debug_regex'.
+# This function runs in place of 'parse_dhcp_line' in mod_parse_dhcp.
 regex_debug_line_parser()
 {
     local pdl_line="$1"
@@ -32,9 +43,24 @@ regex_debug_line_parser()
     fi
 }
 
-parse_debug_regex()
+
+# Process the source contents with a regular expression debugging
+# function.
+#
+# Due to the volume of output, it is recommended that one curate a
+# small logfile that includes as many examples as possible without
+# undue duplication.
+parse_dhcp_debug_regex()
 {
-    read_dhcp_lines "$logfile" "regex_debug_line_parser"
+    echo "Parsing DHCP data from '$logfile' to test the regular expression."
+    echo
+    
+    declare pdr_line
+    local -i PDR_LINENO=0
+    while read -r "pdr_line"; do
+        (( ++PDR_LINE ))
+        regex_debug_line_parser "$pdr_line"
+    done < "$logfile"
 
     cat <<EOF
 Use this output to compare the aliases for subscripted BASH_REMATCH
@@ -45,49 +71,42 @@ EOF
     echo
 }
 
-# These two functions were used to debug a DHCPINFORM -> DHCPACK
-# negotiation, which is unique and relatively rare.  Hopefully
-# these two functions won't be needed, but there left here as a
-# debugging example if necessary in the future
-keys_debug_line_parser()
+
+
+# This test version replaces the journalctl source of data with
+# a textfile saved from a journalctl report.  This allows development
+# and testing on a non-DHCP-server workstation.
+parse_dhcp_log_file()
 {
-    parse_dhcp_line "$1"
-
-    if [ "$RDL_LINENO" -eq 37 ] || [ "$RDL_LINENO" -eq 38 ]; then
-        reqrec_report
-        echo
-    fi
-}
-
-# Second of two DHCPINFORM -> DHCPACK debugging functions
-parse_debug_keys()
-{
-    read_dhcp_lines "$logfile" "keys_debug_line_parser"
-
-    cat <<EOF
-
-See the progression of the contents of connection-tracking associative
-array.  In function keys_debug_line_parser, the scope of the lines to be
-displayed is limited a conditional testing the value of the variable
-RDL_LINENO.
-EOF
+    echo "Parsing content from '$logfile'"
     echo
-}
+    local plf_line
+    while read -r "plf_line"; do
+        parse_dhcp_line "$plf_line"
+    done < "$logfile"
 
-
-
-parse_log_file()
-{
-    read_dhcp_lines "$logfile"
     reqrec_report
 }
 
-parse_journalctl()
+# This most closely matches how this should work in production,
+# reading entries from journalctl.  It must be run on a system
+# that has isc-dhcp-server running, of course.
+parse_dhcp_journalctl()
 {
-    read_dhcp_lines
+    echo "Parsing content from 'journalctl'"
+    echo
+    if is_root; then
+        local pj_line
+        while read -r "pj_line"; do
+            parse_dhcp_line "$pj_line"
+        done < <( journalctl -S yesterday -u isc-dhcp-server )
+    else
+        echo "You must be root to access journalctl records."
+    fi
+
+    reqrec_report
 }
 
-# parse_debug_regex
-# parse_debug_keys
-parse_log_file
-# parse_journalctl
+# parse_dhcp_debug_regex
+parse_dhcp_log_file
+# parse_dhcp_journalctl
