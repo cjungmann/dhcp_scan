@@ -1,4 +1,4 @@
-# ParseDHCP Project
+# PROJECT dhcp_scan
 
 For years, looking at the *dhcpd.leases* file was my first and only
 resource for debugging DHCP server issues.  The problem is that the
