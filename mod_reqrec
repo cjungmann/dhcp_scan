@@ -12,9 +12,8 @@ declare -n rr_ip_reqested=ReqRec[2]
 declare -n rr_request_host=ReqRec[3]
 declare -n rr_response=ReqRec[4]
 declare -n rr_ip_offered=ReqRec[5]
-declare -n rr_error_msg=ReqRec[6]
 
-declare -i ReqRec_Len=7
+declare -i ReqRec_Len=6
 
 
 ##
@@ -83,3 +82,82 @@ reqrec_report()
     done
 }
 
+declare rr_ifd='|'    # inter-field-delimiter
+declare rr_ird=$'\n'  # inter-row-delimiter
+
+reqrec_sort_and_display()
+{
+    local -n rsad_table="$1"
+    local OIFS="$IFS"
+    local IFS=$'\n'
+    local -a new_table
+    new_table=( $( sort <<< "${rsad_table[*]}" ) )
+
+    local -a new_row
+    local nline
+    IFS="$rr_ifd"
+    for nline in "${new_table[@]}"; do
+        new_row=( $nline )
+        printf "%s  %s" "${new_row[1]}" "${new_row[2]}"
+        if [ "${new_row[3]}" ]; then
+            printf " (host: %s)" "${new_row[3]}"
+        fi
+        echo
+    done
+
+    IFS="$OIFS"
+}
+
+sortilize_ip()
+{
+    local -n si_out="$1"
+
+    local OIFS="$IFS"
+    local IFS='.'
+    local -a si_parts=( $2 )
+    si_out=$( printf '%02x%02x%02x%02x' "${si_parts[@]}" )
+}
+
+reqrec_report_by_ip()
+{
+    local OIFS="$IFS"
+    local IFS="$rr_ifd"
+    local rr_key
+    local sortable_ip
+    local -a row
+    local -a rrbi_table=()
+    for rr_key in "${!Requests[@]}"; do
+        ReqRec=( ${Requests[$rr_key]} )
+        if [ "$rr_message" != DHCPINFORM ] && [[ "$rr_response" =~ DHCPOFFER|DHCPACK ]]; then
+            if reqrec_row_get "$rr_key"; then
+                sortilize_ip "sortable_ip" "$rr_ip_offered"
+                row=( "$sortable_ip" "$rr_ip_offered" "$rr_id" "$rr_request_host" )
+                rrbi_table+=( "${row[*]}" )
+            fi
+        fi
+    done
+
+    IFS="$OIFS"
+    reqrec_sort_and_display "rrbi_table"
+}
+
+reqrec_report_by_mac()
+{
+    local OIFS="$IFS"
+    local IFS="$rr_ifd"
+    local rr_key
+    local -a row
+    local -a rrbm_table=()
+    for rr_key in "${!Requests[@]}"; do
+        ReqRec=( ${Requests[$rr_key]} )
+        if [ "$rr_message" != DHCPINFORM ] && [[ "$rr_response" =~ DHCPOFFER|DHCPACK ]]; then
+            if reqrec_row_get "$rr_key"; then
+                row=( "$rr_id" "$rr_id" "$rr_ip_offered" "$rr_request_host" )
+                rrbm_table+=( "${row[*]}" )
+            fi
+        fi
+    done
+
+    IFS="$OIFS"
+    reqrec_sort_and_display "rrbm_table"
+}
