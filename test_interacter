@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+source mod_interacter
+
+
+# Shadow functions for testing
+
+reqrec_report_by_ip()
+{
+    cat <<EOF
+192.168.0.1   aa:bb:cc:dd:ee:ff
+192.168.0.2   aa:bb:cc:dd:ee:fe
+192.168.0.3   aa:bb:cc:dd:ee:fd
+192.168.0.4   aa:bb:cc:dd:ee:fc
+192.168.0.5   aa:bb:cc:dd:ee:fb
+192.168.0.6   aa:bb:cc:dd:ee:fa
+EOF
+}
+
+reqrec_report_by_mac()
+{
+    cat <<EOF
+aa:bb:cc:dd:ee:ff  192.168.0.1
+aa:bb:cc:dd:ee:fe  192.168.0.2
+aa:bb:cc:dd:ee:fd  192.168.0.3
+aa:bb:cc:dd:ee:fc  192.168.0.4
+aa:bb:cc:dd:ee:fb  192.168.0.5
+aa:bb:cc:dd:ee:fa  192.168.0.6
+EOF
+}
+
+fake_raw()
+{
+    local ip="$1"
+    local mac="$2"
+    cat <<EOF
+0: '$mac'
+1: 'DHCPDISCOVER'
+2: ''
+3: ''
+4: 'DHCPOFFER'
+5: '$ip'
+
+EOF
+}
+
+reqrec_report()
+{
+    fake_raw 192.168.0.1   aa:bb:cc:dd:ee:ff
+    fake_raw 192.168.0.2   aa:bb:cc:dd:ee:fe
+    fake_raw 192.168.0.3   aa:bb:cc:dd:ee:fd
+    fake_raw 192.168.0.4   aa:bb:cc:dd:ee:fc
+    fake_raw 192.168.0.5   aa:bb:cc:dd:ee:fb
+    fake_raw 192.168.0.6   aa:bb:cc:dd:ee:fa
+}
+
+interacter

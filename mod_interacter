@@ -1,0 +1,38 @@
+# -*- mode:shell-script; sh-shell:bash -*-
+
+# shellcheck shell=bash
+# shellcheck disable=SC2034,SC2154  # aliases not used in defined context
+# shellcheck disable=SC2206,SC2207  # ignore warning, careful with splitting
+
+ia_show_choices()
+{
+    printf $'\e[2J\e[1000;1H'
+    cat <<EOF
+Type one of the following for the indicated output:
+
+i     Sort assignments by IP Address
+m     Sort assignments by MAC Address
+r     Show final raw assignments.
+q     To quit
+
+EOF
+}
+
+interacter()
+{
+    local keyp
+    local less_prompt=$'\e[33;1mMove with movement keys, \"q\" to return.\e[m\n'
+
+    while ! [[ "$keyp" =~ q|Q ]]; do
+        ia_show_choices
+        read -n1 -p "Type a letter: " "keyp"
+        case "$keyp" in
+            i) ( echo "$less_prompt"; reqrec_report_by_ip )  | less -r ;;
+            m) ( echo "$less_prompt"; reqrec_report_by_mac ) | less -r ;;
+            r) ( echo "$less_prompt"; reqrec_report; )       | less -r ;;
+        esac
+    done
+
+    echo
+}
+
