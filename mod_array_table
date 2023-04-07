@@ -42,7 +42,7 @@ array_row_set()
     local -a ars_array=( "${@:3}" )
     local val
     for (( ndx=0; ndx<els; ++ndx )); do
-        val="${ars_array[@]:$ndx:1}"
+        val="${ars_array[$ndx]}"
         ars_object+=( "$val" )
     done
 }
@@ -128,7 +128,11 @@ table_array_row_get()
     if [ "$targ_str" ]; then
         local OIFS="$IFS"
         local IFS="$table_array_row_delim"
+
+        # shellcheck disable=SC2034   # name-ref variable used by caller
+        # shellcheck disable=SC2206   # split unquoted string is intentional
         targ_row=( $targ_str )
+
         IFS="$OIFS"
         return 0
     fi
