@@ -1,4 +1,9 @@
-# -*- mode:sh -*-
+# -*- mode:shell-script; sh-shell:bash  -*-
+
+# shellcheck shell=bash
+# shellcheck disable=SC2125         # unquoted subscript intentional
+# shellcheck disable=SC2034,SC2154  # aliases not used in defined context
+# shellcheck disable=SC2206,SC2207  # ignore warning, careful with splitting
 
 # Variables informing how application will run
 declare GArg_Input=""
@@ -22,6 +27,7 @@ clear_GStates() { GArg_States=( 0 0 0 ); }
 declare GArgDelim='|'
 
 declare -a GArg_Output_Options=(
+    ia        # interactive output
     ip        # sort by IP address
     mac       # sort by MAC address
     raw       # raw output
@@ -64,6 +70,7 @@ Options:
    -p              show reassuring progress processing logfile
    -i input_file   name of log file, default is stdin
    -o output_type  allowed values are:
+                   ia    for interactive output
                    ip    for leases sorted by IP address
                    mac   for leases sorted by MAC or ID value
                    raw   for raw output of final DHCP address agreements

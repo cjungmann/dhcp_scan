@@ -1,4 +1,8 @@
-#!/usr/bin/env bash
+# -*- mode:shell-script; sh-shell:bash -*-
+
+# shellcheck shell=bash
+# shellcheck disable=SC2034,SC2154  # aliases not used in defined context
+# shellcheck disable=SC2206,SC2207  # ignore warning, careful with splitting
 
 declare table_array_row_delim='|'
 
@@ -133,8 +137,6 @@ table_array_row_get()
         local OIFS="$IFS"
         local IFS="$table_array_row_delim"
 
-        # shellcheck disable=SC2034   # name-ref variable used by caller
-        # shellcheck disable=SC2206   # split unquoted string is intentional
         targ_row=( $targ_str )
 
         IFS="$OIFS"

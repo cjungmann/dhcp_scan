@@ -1,4 +1,9 @@
-# -*- mode:sh -*-
+# -*- mode:shell-script; sh-shell:bash -*-
+
+# shellcheck shell=bash
+# shellcheck disable=SC2125         # unquoted subscript intentional
+# shellcheck disable=SC2034,SC2154  # aliases not used in defined context
+# shellcheck disable=SC2206,SC2207  # ignore warning, careful with splitting
 
 # Both of the following are to be included in the regex_arr, and
 # each contribute a match-group.  For the two groups that use these
@@ -8,6 +13,7 @@ declare regex_mac=[[:xdigit:]]\{2\}\(:[[:xdigit:]]\{2\}\)\{5,\}
 
 declare regex_message=^.*dhcpd\\\[[[:digit:]]+\\\]:[[:space:]]\(.*\)
 
+# shellcheck disable=SC1083     # disable warning about literal regex curly-braces
 declare -a regex_arr=(
     ^.*
     \([[:digit:]]{2}\(:[[:digit:]]{2}\){2}\)   # group 1(2): time-of-day

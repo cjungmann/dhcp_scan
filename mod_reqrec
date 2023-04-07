@@ -1,17 +1,23 @@
-#!/usr/bin/env bash
+# -*- mode:shell-script; sh-shell:bash -*-
 
-source mod_array_table
+# shellcheck shell=bash
+# shellcheck disable=SC2125         # unquoted subscript intentional
+# shellcheck disable=SC2034,SC2154  # aliases not used in defined context
+# shellcheck disable=SC2206,SC2207  # ignore warning, careful with splitting
 
 declare -A Requests
 
 declare -a ReqRec
 
-declare -n rr_id=ReqRec[0]           ###< MAC or DHCP-
-declare -n rr_message=ReqRec[1]
-declare -n rr_ip_reqested=ReqRec[2]
-declare -n rr_request_host=ReqRec[3]
-declare -n rr_response=ReqRec[4]
-declare -n rr_ip_offered=ReqRec[5]
+# These aliases work with an array-expanded reqrec record,
+# hence the rr_ prefix.
+
+declare -n rr_id=ReqRec[0]              ###< MAC or DHCP-identity (IP address for DHCPINFORM)
+declare -n rr_message=ReqRec[1]         ###< DHCPDISCOVER, DHCPREQUEST, etc
+declare -n rr_ip_reqested=ReqRec[2]     ###< optional, used for DHCPREQUEST
+declare -n rr_request_host=ReqRec[3]    ###< set if supplied by request
+declare -n rr_response=ReqRec[4]        ###< DHCPOFFER, DHCPACK, or DHCPNAK as returned by server
+declare -n rr_ip_offered=ReqRec[5]      ###< permitted IP address
 
 declare -i ReqRec_Len=6
 
