@@ -87,8 +87,11 @@ table_array_row_put()
 }
 
 # Untypeable character to substitute for missing parameter
-# in table_array_row_exists()
-TARE_MISSING=$'\000'
+# in table_array_row_exists().
+#
+# This value cannot be \000, I'm not sure why noe.  Maybe that
+# value confuses Bash into thinking it's an zero-length string.
+TARE_MISSING=$'\001'
 
 ##
 # @brief Detect record existence without retrieving the record
@@ -104,9 +107,10 @@ table_array_row_exists()
     local -n tare_table="$1"
     local tare_key="$2"
 
-    # Omit ':' for test to just check for existence (bash(1):'Omitting the color')
-    local s="${tare_table[$tare_key]-$TARE_MISSING}"
-    [ "$s" != "$TARE_MISSING" ]
+    # Omit ':' for test to just check for existence (bash(1):'Omitting +the +colon')
+    # Look at the `test_array_table` script for a discussion of this pattern.
+    local s="${tare_table[$tare_key]+$TARE_MISSING}"
+    [ "$s" == "$TARE_MISSING" ]
 }
 
 ##

@@ -36,10 +36,61 @@ test_existence()
 }
 
 echo
-echo "Testing for row existence:"
+cat <<EOF
+Row existence test function uses obscure Bash parameter substitution
+pattern where the colon is omitted to test for existence of a variable
+rather than retrieve the value.
+EOF
+echo "Row existence check uses obscure Bash parameter substitution"
 test_existence 2
 test_existence 3
 test_existence 4
+
+cat <<EOF
+
+Just for snicks, let's isolate the non-colon pattern to see if
+it works as I think it does.
+
+EOF
+declare -a test_array=(
+    "The chance of a very large element, the retrieval of which might be considered \"expensive\" and thus undesirable, is the main reason one might want to take advantage of this pattern."
+    "Second element to vindicate array pattern"
+    )
+
+declare setvar=1
+declare unset1="${setvar+inuse}"
+declare unset2="${bogus_var+inuse}"
+
+declare arrayElement0="${test_array[0]+inuse}"
+declare arrayElement1="${test_array[1]+inuse}"
+declare arrayElement2="${test_array[2]+inuse}"
+
+declare B=$'\e[33;1m'
+declare U=$'\e[34;1m'
+declare X=$'\e[m'
+
+cat <<EOF
+In each of the two following sets of tests, only the last test
+is of a missing variable.  If the variable contains ${B}inuse${X}, that
+variable exists.  If the variable is empty, it doesn't exist.
+
+We're testing two concepts here, to recognize a missing variable,
+and to prevent retrieval of the value if it exists.  While the
+${B}Omitting the colon${X} hint applies to all of the substitution
+parameter expansions, only the ${U}Use Alternate Value${X} parameter
+expansion seems to have the effect I'm seeking.
+
+
+Tests of simple variable:
+unset1 is $unset1
+unset2 is $unset2
+
+Tests for array elements:
+arrayElement0 is $arrayElement0
+arrayElement1 is $arrayElement1
+arrayElement2 is $arrayElement2
+
+EOF
 
 
 
