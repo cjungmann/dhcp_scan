@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC1091         # each source file was individually shellchecked
+# shellcheck disable=SC2034,SC2154  # aliases not used in defined context
+
 source mod_array_table
 source mod_reqrec
 source mod_parse_dhcp
 source mod_parse_args
+source mod_interacter
 
 
 is_root() { [ "$USER" == "root" ];  }
@@ -34,8 +38,9 @@ main()
         fi
 
         case "$GArg_Output" in
-            raw) reqrec_report ;;
+            ia) interacter ;;
             ip) reqrec_report_by_ip ;;
+            raw) reqrec_report ;;
             mac) reqrec_report_by_mac ;;
         esac
     fi
