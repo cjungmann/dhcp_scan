@@ -25,7 +25,7 @@ interacter()
 
     while ! [[ "$keyp" =~ q|Q ]]; do
         ia_show_choices
-        read -n1 -p "Type a letter: " "keyp"
+        read -n1 -p "Type a letter: " "keyp" </dev/tty
         case "$keyp" in
             i) ( echo "$less_prompt"; reqrec_report_by_ip )  | less -r ;;
             m) ( echo "$less_prompt"; reqrec_report_by_mac ) | less -r ;;
