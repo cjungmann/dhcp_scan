@@ -1,0 +1,103 @@
+.TH dhcp_scan 1 "2023-04-14" "User Commands"
+.SH NAME
+.B dhcp_scan
+\- Scan journalctl output for a dhcp leases report.
+.SH SYNOPSIS
+.BR dhcp_scan
+.RB [ -h "] [" -s ]
+[\fB-i\fP \fIFILE\fP]
+[\fB-o\fP \fIDISPLAY_MODE\fP]
+.SH DESCRIPTION
+.PP
+This utility can be used to prepare a more complete report of IP
+address leases than can be found in the
+.B dhcpd.leases
+file.
+Simply pipe the output of
+.B journalctl
+to
+.B dhcp_scan
+to prepare the report.
+See the
+.B EXAMPLES
+section below.
+.PP
+Note that it may take many seconds to scan all the
+.B journalctl
+records before the utility will be able to generate a report.
+For this reason, the default and recommended
+.I DISPLAY MODE
+is
+.I interactive
+so the user can switch between multiple views without having to
+rescan the records.
+.PP
+The default setting is to show the DHCP message names as
+they are encountered to reassure the user that the program has
+not frozen.
+.SH OPTIONS
+.TP
+.B -h
+Show a brief help display.
+.TP
+.B -s
+Silently scan
+.B journalctl
+records.
+.TP
+.BI -i " FILE"
+DHCP messages log file to scan.
+If this option is omitted, the program will read records from STDIN.
+.TP
+.BI -o " OUTPUT_MODE"
+The options are:
+.RS 7
+.TP
+.I interactive
+The default display mode.
+After scanning the records, the user selects a display mode for viewing the data.
+The report is shown in
+.BR less .
+Leaving
+.B less
+returns the user to the mode selection menu.
+.TP
+.I ip
+Prints report in IP address order and exits.
+.TP
+.I mac
+Prints report in MAC address order and exits.
+.TP
+.I raw
+Prints complete address negotiations in chronological order of
+the time of resolution, then exits.
+.RE
+.SH EXAMPLES
+.PP
+With so many options for the
+.B journalctl
+utility, it makes more sense to have the user determine how to invoke
+it to generate the raw records needed for using
+.BR dhcp_scan .
+Either use the
+.B journalctl
+output directly by piping it into
+.BR dhcp_scan ,
+or create a file that can be read with the
+.B -i
+option.
+.PP
+.RS 4
+.EX
+sudo journalctl -S today -u isc-dhcp-server | dhcp_scan
+.EE
+.RE
+.PP
+or
+.PP
+.RS 4
+.EX
+sudo journalctl -S today -u isc-dhcp-server > dhcpd.log
+dhcp_scan -i dhcpd.log
+.EE
+.RE
