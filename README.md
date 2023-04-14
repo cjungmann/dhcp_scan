@@ -1,16 +1,45 @@
 # PROJECT dhcp_scan
 
-For years, looking at the *dhcpd.leases* file was my first and only
-resource for debugging DHCP server issues.  The problem is that the
-*dhcpd.leases* file does not include IP addresses where hosts are
-assigned fixed addresses in the *dhcpd.conf* host declarations.
+A console-based utility for parsing **journalctl** output to make a
+report of dhcp-server assigned IP addresses.
 
-A more complete accounting of a server's inventory of IP addresses
-can be found in a report from the *journalctl* tool.
+## Motivation
 
-This project compiles the information provided by *journalctl* to
-make a list of addresses assigned by the server, including both the
-dynamic and the static IP addresses.
+In an effort to limit my kid's screen time with **iptables** rules,
+I needed to figure out why the dhcp-server was not honoring host
+declarations that assigned specific IP addresses to known MAC addresses.
+
+I had always referred to the *dhcpd.leases* file for this kind of
+information. Unfortunately, it does not record addresses assigned
+by a **fixed-address** declaration in a host declaration containing a
+**hardware** declaration to identify the host.
+
+I found that the **journalctl** utility provided a more complete
+accounting of dhcp-server activity, but scanning the output was like
+drinking from a firehose.  A perfect excuse to try some new Bash
+ideas.
+
+By-the-way, it turns out I'm being thwarted by randomized MAC
+addresses that newer devices use to prevent tracking.  This utility
+revealed that some devices get several different IP addresses
+during a given day.
+
+## USING dhcp_scan
+
+Either pipe **journalctl** output into the **dhcp_scan** utility,
+or create a file from **journalctl** and direct **dhcp_scan** to
+read it.
+
+~~~
+$ sudo journalctl -S today -u isc-dhcp-server | dhcp_scan
+~~~
+
+or
+
+~~~
+$ sudo journalctl -S today -u isc-dhcp-server > dhcpd.log
+$ dhcp_scan -i dhcpd.log
+~~~
 
 
 ## REFERENCES
