@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+ #!/usr/bin/env bash
 
 # shellcheck disable=SC1091         # each source file was individually shellchecked
 # shellcheck disable=SC2034,SC2154  # aliases not used in defined context
@@ -16,14 +16,14 @@ report_progress() { printf $'\e[2J\e[1;1H%s' "$d_message"; }
 # Run option variables:
 # GArg_Input         input file (stdin if blank)
 # GArg_Output        format of output
-# GArg_Show_Progress indicate progress (1 to show, 0 not to show)
+# GArg_Hide_Progress Hide progress (silent mode) 0 to show, 1 to hide
 
 main()
 {
     local mline
     local reporter=""
     if parse_args "$@"; then
-        if [ "$GArg_Show_Progress" -eq 1 ]; then
+        if [ "$GArg_Hide_Progress" -eq 0 ]; then
             reporter="report_progress"
         fi
 
@@ -38,7 +38,7 @@ main()
         fi
 
         case "$GArg_Output" in
-            ia) interacter ;;
+            interactive) interacter ;;
             ip) reqrec_report_by_ip ;;
             raw) reqrec_report ;;
             mac) reqrec_report_by_mac ;;
