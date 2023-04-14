@@ -11,7 +11,8 @@ source mod_interacter
 
 
 is_root() { [ "$USER" == "root" ];  }
-report_progress() { printf $'\e[2J\e[1;1H%s' "$d_message"; }
+clear_screen() { printf $'\e[2J\e[1;1H'; }
+report_progress() { clear_screen; echo "$d_message"; }
 
 # Run option variables:
 # GArg_Input         input file (stdin if blank)
@@ -31,10 +32,12 @@ main()
             while read -r "mline"; do
                 parse_dhcp_line "$mline" "$reporter"
             done < "$GArg_Input"
+            clear_screen
         else
             while read -r "mline"; do
                 parse_dhcp_line "$mline" "$reporter"
             done
+            clear_screen
         fi
 
         case "$GArg_Output" in
