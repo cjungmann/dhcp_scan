@@ -1,0 +1,199 @@
+<!-- Creator     : groff version 1.22.4 -->
+<!-- CreationDate: Fri Apr 14 20:19:55 2023 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>dhcp_scan</title>
+
+</head>
+<body>
+
+<h1 align="center">dhcp_scan</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#OPTIONS">OPTIONS</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#SEE ALSO">SEE ALSO</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>dhcp_scan</b>
+&minus; Scan journalctl output for a dhcp leases report.</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>dhcp_scan</b>
+[<b>-h</b>] [<b>-s</b>] [<b>-i</b> <i>FILE</i>] [<b>-o</b>
+<i>DISPLAY_MODE</i>]</p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">This utility
+can be used to prepare a more complete report of IP address
+leases than can be found in the <b>dhcpd.leases</b> file.
+Simply pipe the output of <b>journalctl</b> to
+<b>dhcp_scan</b> to prepare the report. See the
+<b>EXAMPLES</b> section below.</p>
+
+<p style="margin-left:11%; margin-top: 1em">Note that it
+may take many seconds to scan all the <b>journalctl</b>
+records before the utility will be able to generate a
+report. For this reason, the default and recommended
+<i>DISPLAY MODE</i> is <i>interactive</i> so the user can
+switch between multiple views without having to rescan the
+records.</p>
+
+<p style="margin-left:11%; margin-top: 1em">The default
+setting is to show the DHCP message names as they are
+encountered to reassure the user that the program has not
+frozen.</p>
+
+<h2>OPTIONS
+<a name="OPTIONS"></a>
+</h2>
+
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="3%">
+
+
+<p style="margin-top: 1em"><b>-h</b></p></td>
+<td width="8%"></td>
+<td width="50%">
+
+
+<p style="margin-top: 1em">Show a brief help display.</p></td>
+<td width="28%">
+</td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="3%">
+
+
+<p><b>-s</b></p></td>
+<td width="8%"></td>
+<td width="50%">
+
+
+<p>Silently scan <b>journalctl</b> records.</p></td>
+<td width="28%">
+</td></tr>
+</table>
+
+<p style="margin-left:11%;"><b>-i</b> <i>FILE</i></p>
+
+<p style="margin-left:22%;">DHCP messages log file to scan.
+If this option is omitted, the program will read records
+from STDIN.</p>
+
+<p style="margin-left:11%;"><b>-o</b>
+<i>OUTPUT_MODE</i></p>
+
+<p style="margin-left:22%;">The options are: <i><br>
+interactive</i></p>
+
+<p style="margin-left:32%;">The default display mode. After
+scanning the records, the user selects a display mode for
+viewing the data. The report is shown in <b>less</b>.
+Leaving <b>less</b> returns the user to the mode selection
+menu.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="22%"></td>
+<td width="4%">
+
+
+<p><i>ip</i></p></td>
+<td width="6%"></td>
+<td width="68%">
+
+
+<p>Prints report in IP address order and exits.</p></td></tr>
+<tr valign="top" align="left">
+<td width="22%"></td>
+<td width="4%">
+
+
+<p><i>mac</i></p></td>
+<td width="6%"></td>
+<td width="68%">
+
+
+<p>Prints report in MAC address order and exits.</p></td></tr>
+<tr valign="top" align="left">
+<td width="22%"></td>
+<td width="4%">
+
+
+<p><i>raw</i></p></td>
+<td width="6%"></td>
+<td width="68%">
+
+
+<p>Prints complete address negotiations in chronological
+order of the time of resolution, then exits.</p></td></tr>
+</table>
+
+<h2>EXAMPLES
+<a name="EXAMPLES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">With so many
+options for the <b>journalctl</b> utility, it makes more
+sense to have the user determine how to invoke it to
+generate the raw records needed for using <b>dhcp_scan</b>.
+Either use the <b>journalctl</b> output directly by piping
+it into <b>dhcp_scan</b>, or create a file that can be read
+with the <b>-i</b> option.</p>
+
+<p style="margin-left:17%; margin-top: 1em">sudo journalctl
+-S today -u isc-dhcp-server | dhcp_scan</p>
+
+<p style="margin-left:11%; margin-top: 1em">or</p>
+
+<p style="margin-left:17%; margin-top: 1em">sudo journalctl
+-S today -u isc-dhcp-server &gt; dhcpd.log <br>
+dhcp_scan -i dhcpd.log</p>
+
+<h2>SEE ALSO
+<a name="SEE ALSO"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>journalctl</b>(1)</p>
+<hr>
+</body>
+</html>
