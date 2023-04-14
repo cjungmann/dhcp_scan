@@ -7,8 +7,8 @@
 
 # Variables informing how application will run
 declare GArg_Input=""
-declare GArg_Output="ip"
-declare -i GArg_Show_Progress=0
+declare GArg_Output="interactive"
+declare -i GArg_Hide_Progress=0
 declare -i GArg_Show_Args=0
 
 #################################
@@ -27,10 +27,10 @@ clear_GStates() { GArg_States=( 0 0 0 ); }
 declare GArgDelim='|'
 
 declare -a GArg_Output_Options=(
-    ia        # interactive output
-    ip        # sort by IP address
-    mac       # sort by MAC address
-    raw       # raw output
+    interactive # interactive output
+    ip          # sort by IP address
+    mac         # sort by MAC address
+    raw         # raw output
 )
 
 GArg_Output_valid()
@@ -52,7 +52,7 @@ GArg_show_value()
 GArg_show_args()
 {
     local gsa_stem
-    local -a gsa_stems=( "Input" "Output" "Show_Progress" )
+    local -a gsa_stems=( "Input" "Output" "Hide_Progress" )
     for gsa_stem in "${gsa_stems[@]}" ; do
         GArg_show_value "$gsa_stem"
     done
@@ -67,13 +67,13 @@ Usage:
 Options:
    -a              show options and exit
    -h              show this help display
-   -p              show reassuring progress processing logfile
-   -i input_file   name of log file, default is stdin
-   -o output_type  allowed values are:
-                   ia    for interactive output
-                   ip    for leases sorted by IP address
-                   mac   for leases sorted by MAC or ID value
-                   raw   for raw output of final DHCP address agreements
+   -s              silently process records
+   -i FILE         name of log file, using STDIN if FILE not specified
+   -o OUTPUT_TYPE  allowed values are:
+                       interactive for interactive output (default)
+                       ip          for leases sorted by IP address
+                       mac         for leases sorted by MAC or ID value
+                       raw         for minimally-processed agreements
 EOF
     }
 
@@ -88,7 +88,7 @@ parse_args()
                 a) GArg_Show_Args=1;;
                 i) GAwait_input=1;;
                 o) GAwait_output=1;;
-                p) GArg_Show_Progress=1;;
+                s) GArg_Hide_Progress=1;;
                 h) show_usage;
                    if [ "$GArg_Show_Args" -eq 0 ]; then
                       exit 1
