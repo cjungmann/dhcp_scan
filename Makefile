@@ -2,7 +2,6 @@
 
 PREFIX ?= /usr/local
 
-
 .PHONY: help
 help:
 	@echo
@@ -15,7 +14,8 @@ help:
 	@echo "      This page"
 	@echo
 	@echo "   man2html"
-	@echo "      Generate an HTML file from the man page."
+	@echo "      Generate an HTML file from the man page.  The main use of this"
+	@echo "      target is to generate a HTML file to which README.md can link."
 	@echo
 	@echo "   install"
 	@echo "      Install the utility in $(PREFIX)/bin and the"
@@ -32,7 +32,7 @@ man2html:
 
 .PHONY: install
 install:
-	install -D --mode=755 dhcp_scan $(PREFIX)/bin
+	ln -s $(abspath dhcp_scan) $(PREFIX)/bin
 	gzip -c dhcp_scan.1 > dhcp_scan.1.gz
 	sudo mv dhcp_scan.1.gz /usr/share/man/man1
 
