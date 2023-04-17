@@ -5,7 +5,7 @@ report of dhcp-server address leases.
 
 Arguably the most useful part of this project does not belong on this
 installation and usage page.  Writing and managing regular expressions can
-be complicatedd and error-prone, but my [regular expression methods][re_craft]
+be complicatedd and error-prone, but my [Crafting Regular Expression for Bash][re_craft]
 make success much easier to achieve.
 
 ## Motivation
