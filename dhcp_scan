@@ -3,11 +3,15 @@
 # shellcheck disable=SC1091         # each source file was individually shellchecked
 # shellcheck disable=SC2034,SC2154  # aliases not used in defined context
 
-source mod_array_table
-source mod_reqrec
-source mod_parse_dhcp
-source mod_parse_args
-source mod_interacter
+# Establish base location in script's real location to find sourced files
+declare SFOLDER=$( readlink -f "$0" )
+SFOLDER="${SFOLDER%/*}"
+
+source "${SFOLDER}"/mod_array_table
+source "${SFOLDER}"/mod_reqrec
+source "${SFOLDER}"/mod_parse_dhcp
+source "${SFOLDER}"/mod_parse_args
+source "${SFOLDER}"/mod_interacter
 
 
 is_root() { [ "$USER" == "root" ];  }
