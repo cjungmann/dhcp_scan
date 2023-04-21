@@ -3,6 +3,16 @@
 A console-based utility for parsing `journalctl` output to make a
 report of dhcp-server address leases.
 
+## DISCUSSION LINKS
+
+To me, how this utility works is more interesting than what it does.
+This project uses three techniques of which I have not seen any other
+examples:
+
+- Using [Bash Arrays for Regular Expressions](doc_regex_array.md)
+- Using [Namerefs for Return Values](doc_nameref_returns.md)
+- Using [Using Namerefs to Access Bash Arrays](doc_array_namerefs.md)
+
 Arguably the most useful part of this project does not belong on this
 installation and usage page.  Writing and managing regular expressions can
 be complicatedd and error-prone, but my [Crafting Regular Expression for Bash][re_craft]
