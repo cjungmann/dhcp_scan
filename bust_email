@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+declare -a regex_arr=(
+   ^
+   \(               # subpattern 1
+                    # escape '(' to prevent Bash subprocess
+      [^@]+
+   \)               # end of subpattern 1
+   @                # terminates subpattern 1
+   \(               # subpattern 2 (ignored)
+      \(            # optional subpattern 3 (includes subdomain)
+         \(         # subpattern 4 (IS subdomain)
+            .\*     # escape '*' to prevent filename substitution
+         \)         # end of subpattern 4
+
+         \\.        # 1. terminates subpattern 3 without being included
+                    #    subpattern 4, the capture we want to use
+                    # 2. double-backslash to prevent regex engine
+                    #    wildcard interpretation (we want the match
+                    #    a literal '.')
+
+      \)?           # end of subpattern 3
+      \(            # subpattern 5 (domain)
+         [^.]+
+         \\.
+         [^.]+
+      \)            # end of subpattern 5
+   \)               # end of subpattern 2
+   $
+)
+
+# Give aliases to importaant groups
+declare -n email_name=BASH_REMATCH[1]
+declare -n email_subdomain=BASH_REMATCH[3]
+declare -n email_domain=BASH_REMATCH[4]
+
+# Join array elements without delimiters
+declare OIFS="$IFS"
+declare IFS=''
+declare regex_str="${regex_arr[*]}"
+OIFS="$IFS"
+unset OIFS
+
+echo "regex_str is '$regex_str'"
+
+# Test bespoke concatentation used in RE_CRAFT.md
+# regex_str=^\([^@]+\)@\(\(\(.*\)\\.\)?\([^.]+\\.[^.]+\)\)$
+
+# Testing our work
+declare -a samples=(
+    president@whitehouse.gov
+    inquiries@usmint.treas.gov
+    USPSInformeddelivery@email.informeddelivery.usps.com
+)
+
+
+declare sample
+for sample in "${samples[@]}"; do
+    if [[ "$sample" =~ $regex_str ]]; then
+        printf "For candidate email address '%s':\n" "$sample"
+        printf "   email name: '%s'\n" "${email_name}"
+        printf "   email subdomain: '%s'\n" "${email_subdomain}"
+        printf "   email domain: '%s'\n" "${email_domain}"
+    else
+        printf "   '$sample' is not recognized as an email address.\n"
+    fi
+done
